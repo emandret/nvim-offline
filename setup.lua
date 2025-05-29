@@ -12,8 +12,8 @@ async.run(function()
       if not pkg:is_installing() and pkg:is_installable() then
         pkg:install()
       end
-      -- Timeout after 10 minutes, 10 seconds interval
-      local timeout, interval, waited = 1000000, 100000, 0
+      -- Timeout after 10 minutes, 2 seconds interval
+      local timeout, interval, waited = 1000000, 2000, 0
       while pkg:is_installing() and not pkg:is_installed() do
         vim.notify("Still waiting for package: " .. pkg_name .. "\n", vim.log.levels.INFO)
         async.util.sleep(interval)
@@ -29,22 +29,22 @@ async.run(function()
 
   local ts_spec = require("plugins.syntax.nvim-treesitter")
   local ts_ensure = ts_spec[1].opts.ensure_installed or {}
-  local ts_install = require("nvim-treesitter.install")
+  local ts_parsers = require("nvim-treesitter.parsers")
 
   -- Block for all Treesitter parsers to be installed
   for _, lang in ipairs(ts_ensure) do
-    if vim.treesitter.language.inspect(lang) == nil then
-      local ok = pcall(function()
-        ts_install.install(lang)
+    if not ts_parsers.has_parser(lang) then
+      local ok, error = pcall(function()
+        vim.cmd("TSInstall " .. lang)
       end)
 
       if not ok then
-        vim.notify("Failed to queue installation for: " .. lang .. "\n", vim.log.levels.ERROR)
+        vim.notify("Failed to queue install: " .. error .. "\n", vim.log.levels.ERROR)
       end
 
-      -- Timeout after 10 minutes, 10 seconds interval
-      local timeout, interval, waited = 1000000, 100000, 0
-      while vim.treesitter.language.inspect(lang) == nil do
+      -- Timeout after 10 minutes, 2 seconds interval
+      local timeout, interval, waited = 1000000, 2000, 0
+      while not ts_parsers.has_parser(lang) do
         vim.notify("Still waiting for parser: " .. lang .. "\n", vim.log.levels.INFO)
         async.util.sleep(interval)
         waited = waited + interval
