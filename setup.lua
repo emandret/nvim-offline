@@ -8,10 +8,13 @@ async.run(function()
   -- Block for all Mason packages to be installed
   for _, pkg_name in ipairs(ensure_installed) do
     local ok, pkg = pcall(registry.get_package, pkg_name)
-    if ok and pkg:is_installing() then
+    if ok and not pkg:is_installed() then
+      if not pkg:is_installing() and pkg:is_installable() then
+        pkg:install()
+      end
       -- Timeout after 10 minutes, 10 seconds interval
       local timeout, interval, waited = 1000000, 100000, 0
-      while not pkg:is_installed() do
+      while pkg:is_installing() and not pkg:is_installed() do
         vim.notify("Still waiting for package: " .. pkg_name .. "\n", vim.log.levels.INFO)
         async.util.sleep(interval)
         waited = waited + interval
