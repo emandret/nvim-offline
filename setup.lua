@@ -29,13 +29,11 @@ async.run(function()
 
   local ts_spec = require("plugins.syntax.nvim-treesitter")
   local ts_ensure = ts_spec[1].opts.ensure_installed or {}
-  local ts_parsers = require("nvim-treesitter.parsers").get_parser_configs()
   local ts_install = require("nvim-treesitter.install")
 
   -- Block for all Treesitter parsers to be installed
   for _, lang in ipairs(ts_ensure) do
-    local parser_config = ts_parsers[lang]
-    if parser_config and not ts_install.is_installed(lang) then
+    if vim.treesitter.language.inspect(lang) == nil then
       local ok = pcall(function()
         ts_install.install(lang)
       end)
@@ -46,7 +44,7 @@ async.run(function()
 
       -- Timeout after 10 minutes, 10 seconds interval
       local timeout, interval, waited = 1000000, 100000, 0
-      while not ts_install.is_installed(lang) do
+      while vim.treesitter.language.inspect(lang) == nil do
         vim.notify("Still waiting for parser: " .. lang .. "\n", vim.log.levels.INFO)
         async.util.sleep(interval)
         waited = waited + interval
