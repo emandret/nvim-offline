@@ -52,6 +52,9 @@ async.run(function()
           vim.notify("Timeout installing parser: " .. lang .. "\n", vim.log.levels.WARN)
           return
         end
+        -- Reload cached parsers
+        package.loaded["nvim-treesitter.parsers"] = nil
+        ts_parsers = require("nvim-treesitter.parsers")
       end
       vim.notify("Installed parser: " .. lang .. "\n", vim.log.levels.INFO)
     end
