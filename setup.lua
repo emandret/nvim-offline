@@ -1,6 +1,9 @@
 local async = require("plenary.async")
 
 async.run(function()
+  -- Update Treesitter parsers synchronously
+  require("nvim-treesitter.install").update({ with_sync = true })
+
   local plugin_spec = require("plugins.lsp.mason-nvim")
   local ensure_installed = plugin_spec[1].opts.ensure_installed or {}
   local registry = require("mason-registry")
@@ -26,9 +29,6 @@ async.run(function()
       vim.notify("Installed package: " .. pkg_name .. "\n", vim.log.levels.INFO)
     end
   end
-
-  -- Update Treesitter parsers synchronously
-  require("nvim-treesitter.install").update({ with_sync = true })
 end, function()
   -- Quit when done
   vim.cmd("qa")
