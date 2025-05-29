@@ -9,8 +9,8 @@ async.run(function()
   for _, pkg_name in ipairs(ensure_installed) do
     local ok, pkg = pcall(registry.get_package, pkg_name)
     if ok and pkg:is_installing() then
-      -- Timeout after 2 minutes, 5 seconds interval
-      local timeout, interval, waited = 120000, 5000, 0
+      -- Timeout after 10 minutes, 10 seconds interval
+      local timeout, interval, waited = 1000000, 100000, 0
       while not pkg:is_installed() do
         vim.notify("Still waiting for package: " .. pkg_name .. "\n", vim.log.levels.INFO)
         async.util.sleep(interval)
