@@ -1,16 +1,13 @@
 local async = require("plenary.async")
 
 async.run(function()
-  -- Update Treesitter parsers synchronously
-  require("nvim-treesitter.install").update({ with_sync = true })
-
-  local plugin_spec = require("plugins.lsp.mason-nvim")
-  local ensure_installed = plugin_spec[1].opts.ensure_installed or {}
-  local registry = require("mason-registry")
+  local mason_spec = require("plugins.lsp.mason-nvim")
+  local mason_ensure = mason_spec[1].opts.ensure_installed or {}
+  local mason_registry = require("mason-registry")
 
   -- Block for all Mason packages to be installed
-  for _, pkg_name in ipairs(ensure_installed) do
-    local ok, pkg = pcall(registry.get_package, pkg_name)
+  for _, pkg_name in ipairs(mason_ensure) do
+    local ok, pkg = pcall(mason_registry.get_package, pkg_name)
     if ok and not pkg:is_installed() then
       if not pkg:is_installing() and pkg:is_installable() then
         pkg:install()
@@ -27,6 +24,38 @@ async.run(function()
         end
       end
       vim.notify("Installed package: " .. pkg_name .. "\n", vim.log.levels.INFO)
+    end
+  end
+
+  local ts_spec = require("plugins.syntax.nvim-treesitter")
+  local ts_ensure = ts_spec[1].opts.ensure_installed or {}
+  local ts_parsers = require("nvim-treesitter.parsers").get_parser_configs()
+  local ts_install = require("nvim-treesitter.install")
+
+  -- Block for all Treesitter parsers to be installed
+  for _, lang in ipairs(ts_ensure) do
+    local parser_config = ts_parsers[lang]
+    if parser_config and not ts_install.is_installed(lang) then
+      local ok = pcall(function()
+        ts_install.install(lang)
+      end)
+
+      if not ok then
+        vim.notify("Failed to queue installation for: " .. lang .. "\n", vim.log.levels.ERROR)
+      end
+
+      -- Timeout after 10 minutes, 10 seconds interval
+      local timeout, interval, waited = 1000000, 100000, 0
+      while not ts_install.is_installed(lang) do
+        vim.notify("Still waiting for parser: " .. lang .. "\n", vim.log.levels.INFO)
+        async.util.sleep(interval)
+        waited = waited + interval
+        if waited >= timeout then
+          vim.notify("Timeout installing parser: " .. lang .. "\n", vim.log.levels.WARN)
+          return
+        end
+      end
+      vim.notify("Installed parser: " .. lang .. "\n", vim.log.levels.INFO)
     end
   end
 end, function()

@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS builder
+FROM ubuntu:24.04 AS neovim
 
 ARG NEOVIM_VERSION=v0.11.1
 ARG GO_VERSION=go1.24.3
@@ -41,8 +41,12 @@ ENV XDG_CACHE_HOME=${HOME}/.cache
 # Set the current working directory
 WORKDIR $HOME
 
-# Get config from dotfiles repo
+# Use the previous image
+FROM neovim AS builder
+
 ARG CACHE_BUST=1
+
+# Get config from dotfiles repo
 RUN git clone --depth=1 https://github.com/emandret/dotfiles.git \
   && mkdir -p $XDG_CONFIG_HOME \
   && cp -r dotfiles/.config/nvim ${XDG_CONFIG_HOME}/nvim
