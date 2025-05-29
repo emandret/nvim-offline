@@ -48,10 +48,9 @@ RUN git clone --depth=1 https://github.com/emandret/dotfiles.git \
   && cp -r dotfiles/.config/nvim ${XDG_CONFIG_HOME}/nvim
 
 # Install everything
-COPY mason.lua .
+COPY setup.lua .
 RUN nvim --headless '+Lazy! sync' +qa \
-  && nvim --headless +TSUpdateSync +qa \
-  && nvim --headless '+luafile mason.lua'
+  && nvim --headless '+luafile setup.lua'
 
 # Package the config for offline use
 RUN tar -czf /tmp/nvim-offline.tar.gz \
