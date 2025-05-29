@@ -63,3 +63,4 @@ RUN tar -czf /tmp/nvim-offline.tar.gz \
 # Export stage
 FROM scratch AS export
 COPY --from=builder /tmp/nvim-offline.tar.gz /nvim-offline.tar.gz
+

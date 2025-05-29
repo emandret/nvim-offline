@@ -15,3 +15,4 @@ docker run -it --name neovim-test -v ./out:/tmp/out neovim:latest bash
 $ tar -xzf /tmp/out/nvim-offline.tar.gz -C ~
 $ nvim
 ```
+
