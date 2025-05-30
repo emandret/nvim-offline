@@ -27,7 +27,7 @@ async.run(function()
     end
   end
 
-  local ts_spec = require("plugins.syntax.nvim-treesitter")
+  local ts_spec = require("plugins.treesitter.nvim-treesitter")
   local ts_ensure = ts_spec[1].opts.ensure_installed or {}
   local ts_parsers = require("nvim-treesitter.parsers")
 
