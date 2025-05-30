@@ -20,10 +20,15 @@ async.run(function()
         waited = waited + interval
         if waited >= timeout then
           vim.notify("Timeout installing package: " .. pkg_name .. "\n", vim.log.levels.WARN)
-          return
+          break
         end
       end
-      vim.notify("Installed package: " .. pkg_name .. "\n", vim.log.levels.INFO)
+
+      if pkg:is_installed() then
+        vim.notify("Installed package: " .. pkg_name .. "\n", vim.log.levels.INFO)
+      else
+        vim.notify("Could not install package: " .. pkg_name .. "\n", vim.log.levels.ERROR)
+      end
     end
   end
 
@@ -50,13 +55,18 @@ async.run(function()
         waited = waited + interval
         if waited >= timeout then
           vim.notify("Timeout installing parser: " .. lang .. "\n", vim.log.levels.WARN)
-          return
+          break
         end
         -- Reload cached parsers
         package.loaded["nvim-treesitter.parsers"] = nil
         ts_parsers = require("nvim-treesitter.parsers")
       end
-      vim.notify("Installed parser: " .. lang .. "\n", vim.log.levels.INFO)
+
+      if ts_parsers.has_parser(lang) then
+        vim.notify("Installed parser: " .. lang .. "\n", vim.log.levels.INFO)
+      else
+        vim.notify("Could not install parser: " .. lang .. "\n", vim.log.levels.ERROR)
+      end
     end
   end
 end, function()
