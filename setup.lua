@@ -1,7 +1,7 @@
 local async = require("plenary.async")
 
 async.run(function()
-  local mason_spec = require("plugins.lsp.mason-nvim")
+  local mason_spec = require("plugins.core.mason-nvim")
   local mason_ensure = mason_spec[1].opts.ensure_installed or {}
   local mason_registry = require("mason-registry")
 
