@@ -7,7 +7,7 @@ ARG GO_VERSION=go1.24.3
 RUN apt-get update && apt-get install -y --no-install-recommends \
   git curl zip unzip tar build-essential \
   python3 python3-pip python3-venv \
-  openjdk-22-jre-headless maven \
+  openjdk-21-jre-headless maven \
   nodejs npm \
   ripgrep fd-find
 
