@@ -58,7 +58,8 @@ ARG CACHE_BUST=1
 # Get config from dotfiles repo
 RUN git clone --depth=1 https://github.com/emandret/dotfiles.git \
   && mkdir -p $XDG_CONFIG_HOME \
-  && cp -r dotfiles/.config/nvim ${XDG_CONFIG_HOME}/nvim
+  && cp -r dotfiles/.config/nvim ${XDG_CONFIG_HOME}/nvim \
+  && rm -f ${XDG_CONFIG_HOME}/nvim/lazy-lock.json
 
 # Install everything
 COPY setup.lua .
