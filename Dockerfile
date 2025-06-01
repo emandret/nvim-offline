@@ -5,7 +5,10 @@ ARG GO_VERSION=go1.24.3
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  git curl zip unzip tar build-essential cmake \
+  git curl zip unzip tar \
+  ninja-build build-essential cmake meson \
+  pkg-config autoconf automake libtool \
+  openssl libssl-dev \
   python3 python3-pip python3-venv \
   openjdk-21-jdk-headless maven \
   nodejs npm \
@@ -21,9 +24,6 @@ RUN curl -fsSL https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz -o /tmp/go-lin
   && tar -xzf /tmp/go-linux-amd64.tar.gz --strip-components=1 -C /usr/local/go \
   && find /usr/local/go/bin -type f -printf '%f\0' | xargs -i -0 ln -sf '../go/bin/{}' '/usr/local/bin/{}'
 
-# Install latest stable Rust release
-RUN curl -fsS --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- --profile minimal -y
-
 # Install Neovim
 RUN curl -fsSL https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}/nvim-linux-x86_64.tar.gz -o /tmp/nvim-linux-x86_64.tar.gz \
   && mkdir -p /opt/nvim \
@@ -33,6 +33,10 @@ RUN curl -fsSL https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSI
 # Switch to nonroot user
 RUN useradd -ms /bin/bash nvimuser
 USER nvimuser
+
+# Install latest stable Rust release
+RUN curl -fsS --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- --profile minimal -y \
+  && . ${HOME}/.cargo/env
 
 ENV HOME=/home/nvimuser
 ENV PATH=${PATH}:/usr/local/go/bin:${HOME}/.cargo/bin
