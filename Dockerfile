@@ -5,7 +5,7 @@ ARG GO_VERSION=go1.24.3
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  git curl zip unzip tar build-essential \
+  git curl zip unzip tar build-essential cmake \
   python3 python3-pip python3-venv \
   openjdk-21-jdk-headless maven \
   nodejs npm \
