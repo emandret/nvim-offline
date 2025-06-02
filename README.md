@@ -17,3 +17,11 @@ docker run --rm -it --name neovim-test -v ./out:/tmp/out neovim:latest bash
 $ tar -xzf /tmp/out/nvim-offline.tar.gz -C ~
 $ nvim
 ```
+
+## Fix homedir path after installation
+
+If your homedir path is different, you can use this command to change it after installation:
+
+```sh
+grep -rli -I '/home/nvimuser' ~/.local/share/nvim | xargs -n1 sed -i 's|/home/nvimuser|/home/admin|g'
+```
