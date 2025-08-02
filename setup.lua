@@ -12,6 +12,7 @@ async.run(function()
       if not pkg:is_installing() and pkg:is_installable() then
         pkg:install()
       end
+
       -- Timeout after 10 minutes, 2 seconds interval
       local timeout, interval, waited = 1000000, 2000, 0
       while pkg:is_installing() and not pkg:is_installed() do

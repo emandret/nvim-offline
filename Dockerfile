@@ -1,7 +1,7 @@
 FROM ubuntu:24.04 AS neovim
 
-ARG NEOVIM_VERSION=v0.11.1
-ARG GO_VERSION=go1.24.3
+ARG NEOVIM_VERSION=v0.11.3
+ARG GO_VERSION=go1.24.5
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
