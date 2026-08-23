@@ -1,7 +1,25 @@
-out/
-.idea/
-.Spotlight-V100
+# --- macOS ---
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
 .Trashes
-Desktop.ini
-Thumbs.db
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# --- Linux ---
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# --- Claude code ---
+.claude/
+CLAUDE.local.md
+.mcp.json
+
+# --- Build output for this project ---
+out/
