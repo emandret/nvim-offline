@@ -66,9 +66,8 @@ COPY setup.lua .
 RUN nvim --headless '+Lazy! sync' +qa \
   && nvim --headless '+luafile setup.lua'
 
-RUN tar -czf /tmp/nvim-offline-${TARGETARCH}.tar.gz \
-  -C $HOME .config/nvim .local/share/nvim
+RUN tar -czf /tmp/nvim-offline.tar.gz \
+-C $HOME .config/nvim .local/share/nvim
 
 FROM scratch AS archive
-ARG TARGETARCH
-COPY --from=neovim /tmp/nvim-offline-${TARGETARCH}.tar.gz /nvim-offline-${TARGETARCH}.tar.gz
+COPY --from=neovim /tmp/nvim-offline.tar.gz /nvim-offline.tar.gz
