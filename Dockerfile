@@ -1,6 +1,7 @@
 FROM ubuntu:24.04 AS neovim
-
-ARG NEOVIM_VERSION=v0.11.3
+# TARGETARCH is automatically set by buildkit per --platform target
+ARG TARGETARCH
+ARG NVIM_VERSION=v0.11.3
 ARG GO_VERSION=go1.24.5
 
 # Install system dependencies
@@ -14,63 +15,60 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   nodejs npm \
   ripgrep fd-find
 
-# Install Treesitter CLI
+# Install treesitter CLI
 RUN npm install -g tree-sitter-cli
 
 # Install Go
-RUN curl -fsSL https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz -o /tmp/go-linux-amd64.tar.gz \
+RUN curl -fsSL https://go.dev/dl/${GO_VERSION}.linux-${TARGETARCH}.tar.gz -o /tmp/go-linux-${TARGETARCH}.tar.gz \
   && rm -rf /usr/local/go \
   && mkdir -p /usr/local/go \
-  && tar -xzf /tmp/go-linux-amd64.tar.gz --strip-components=1 -C /usr/local/go \
+  && tar -xzf /tmp/go-linux-${TARGETARCH}.tar.gz --strip-components=1 -C /usr/local/go \
   && find /usr/local/go/bin -type f -printf '%f\0' | xargs -i -0 ln -sf '../go/bin/{}' '/usr/local/bin/{}'
 
 # Install Neovim
-RUN curl -fsSL https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}/nvim-linux-x86_64.tar.gz -o /tmp/nvim-linux-x86_64.tar.gz \
+RUN case "${TARGETARCH}" in \
+      amd64) NVIM_ARCH=x86_64 ;; \
+      arm64) NVIM_ARCH=arm64 ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+    esac \
+  && curl -fsSL https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-${NVIM_ARCH}.tar.gz -o /tmp/nvim-linux.tar.gz \
   && mkdir -p /opt/nvim \
-  && tar -xzf /tmp/nvim-linux-x86_64.tar.gz --strip-components=1 -C /opt/nvim \
+  && tar -xzf /tmp/nvim-linux.tar.gz --strip-components=1 -C /opt/nvim \
   && ln -s /opt/nvim/bin/nvim /usr/local/bin
 
 # Switch to nonroot user
 RUN useradd -ms /bin/bash nvimuser
 USER nvimuser
 
-# Install latest stable Rust release
+# Install latest stable Rust release (rustup autodetects arch)
 RUN curl -fsS --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- --profile minimal -y \
   && . ${HOME}/.cargo/env
 
 ENV HOME=/home/nvimuser
 ENV PATH=${PATH}:/usr/local/go/bin:${HOME}/.cargo/bin
 ENV GOPATH=${HOME}/go
-ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH}
 ENV XDG_CONFIG_HOME=${HOME}/.config
 ENV XDG_DATA_HOME=${HOME}/.local/share
 ENV XDG_STATE_HOME=${HOME}/.local/state
 ENV XDG_CACHE_HOME=${HOME}/.cache
-
-# Set the current working directory
 WORKDIR $HOME
 
-# Use the previous image
-FROM neovim AS builder
-
+# Everything below reruns everytime CACHE_BUST changes
 ARG CACHE_BUST=1
 
-# Get config from dotfiles repo
 RUN git clone --depth=1 https://github.com/emandret/dotfiles.git \
   && mkdir -p $XDG_CONFIG_HOME \
   && cp -r dotfiles/.config/nvim ${XDG_CONFIG_HOME}/nvim \
   && rm -f ${XDG_CONFIG_HOME}/nvim/lazy-lock.json
 
-# Install everything
 COPY setup.lua .
 RUN nvim --headless '+Lazy! sync' +qa \
   && nvim --headless '+luafile setup.lua'
 
-# Package the config for offline use
-RUN tar -czf /tmp/nvim-offline.tar.gz \
+RUN tar -czf /tmp/nvim-offline-${TARGETARCH}.tar.gz \
   -C $HOME .config/nvim .local/share/nvim
 
-# Export stage
-FROM scratch AS export
-COPY --from=builder /tmp/nvim-offline.tar.gz /nvim-offline.tar.gz
-
+FROM scratch AS archive
+ARG TARGETARCH
+COPY --from=neovim /tmp/nvim-offline-${TARGETARCH}.tar.gz /nvim-offline-${TARGETARCH}.tar.gz
